@@ -1,0 +1,15 @@
+<package>
+  <description brief="haptic_interface">
+
+     haptic_interface
+
+  </description>
+  <author>Farhan</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/haptic_interface</url>
+  <depend package="roscpp"/>
+  <depend package="joystick"/>
+</package>
+
+

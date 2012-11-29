@@ -8,8 +8,6 @@
 #define PI 3.14159265
 #define SCALE_FACTOR 4096.0
 
-#define RATE 1
-
 const float def = (3.0*PI)/2.0;
 
 ros::Publisher pub;
@@ -42,17 +40,7 @@ int main(int argc, char * argv[]){
 
 	ros::Subscriber obstacleListener = n.subscribe("l_s_d", 1000, generateFeedback);
 
-	ros::Rate loop(RATE);
-
-	int angle = 0;
-	while(ros::ok()){
-		joystick::haptic_polar msg;
-		angle = rand()%360;
-		msg.strength = 32767;
-		msg.angle = angle;
-		pub.publish(msg);
-		loop.sleep();		
-	}
+	ros::spin();
 
 	return 0;
 }

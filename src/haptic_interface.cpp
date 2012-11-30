@@ -6,7 +6,7 @@
 #include <math.h>
 
 #define PI 3.14159265
-#define SCALE_FACTOR 4096.0
+#define SCALE_FACTOR 2048.0
 
 const float def = (3.0*PI)/2.0;
 
@@ -16,8 +16,8 @@ void generateFeedback(const haptic_interface::obstacle& d){
 	float d1 = d.d1;
 	float d2 = d.d2;
 	float theta = def - (d1-d2);
-	d1 = (1.0/d1);
-	d2 = (1.0/d2);
+	d1 = (1.0/(d1*d1));
+	d2 = (1.0/(d2*d2));
 	float R = d1+d2;
 	std::complex<float> f(R*cos(theta), R*sin(theta));
 	joystick::haptic_polar msg;
@@ -26,7 +26,7 @@ void generateFeedback(const haptic_interface::obstacle& d){
 	if(msg.strength > 32767){
 		msg.strength = 32767;
 	}
-	msg.strength = 32767;
+	//msg.strength = 32767;
 	pub.publish(msg);
 }
 

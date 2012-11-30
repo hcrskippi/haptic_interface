@@ -21,11 +21,12 @@ void generateFeedback(const haptic_interface::obstacle& d){
 	float R = d1+d2;
 	std::complex<float> f(R*cos(theta), R*sin(theta));
 	joystick::haptic_polar msg;
-	msg.angle = ((180.0*arg(f))/PI);
+	msg.angle = (-1.0)*((180.0*arg(f))/PI);
 	msg.strength = (int) (SCALE_FACTOR*abs(f));
 	if(msg.strength > 32767){
 		msg.strength = 32767;
 	}
+	msg.strength = 32767;
 	pub.publish(msg);
 }
 

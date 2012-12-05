@@ -4,12 +4,13 @@
 #include "joystick/GetXYZ.h"
 #include <complex>
 #include <math.h>
+#include "std_msgs/Float32.h"
 
 #define PI 3.14159265
 #define SCALE_FACTOR 2048.0
 #define HAPTIC_POLAR_NODE "haptic_polar"
 #define MAX_STRENGTH 32767
-
+#define MAX_VAL 500000.0
 
 const float def = (3.0*PI)/2.0;
 const float delta = 15.0;
@@ -21,7 +22,7 @@ typedef enum EffectType{
 
 class Generator{
 public:
-	Generator(ros::NodeHandle& n){
+	Generator(ros::NodeHandle& n) : laserLeft(MAX_VAL), laserRight(MAX_VAL){
 		/*Publiser for publishing polar feedback to the joystick*/
 		pub = n.advertise<joystick::haptic_polar>(HAPTIC_POLAR_NODE, 1000);
 		effectType = DEFAULT;
@@ -32,12 +33,18 @@ public:
 
 	void publishMessage(joystick::haptic_polar& msg);
 
-	void generateFeedback(const haptic_interface::obstacle& d);
+	void generateFeedback(void);
+
+	void updateLaserLeft(std_msgs::Float32 l);
+
+	void updateLaserRight(std_msgs::Float32 r); 
 
 private:
 	ros::Publisher pub;
 	int decision;
 	EffectType effectType;
+	float laserLeft;
+	float laserRight;
 };
 
 
@@ -46,9 +53,9 @@ void Generator::publishMessage(joystick::haptic_polar& msg){
 	pub.publish(msg);
 }
 
-void Generator::generateFeedback(const haptic_interface::obstacle& d){
-	float d1 = d.d1;
-	float d2 = d.d2;
+void Generator::generateFeedback(void){
+	float d1 = this->laserLeft;
+	float d2 = this->laserRight;
 	float theta = def - (d1-d2);
 	d1 = (1.0/(d1*d1));
 	d2 = (1.0/(d2*d2));
@@ -74,6 +81,16 @@ void Generator::generateFeedback(const haptic_interface::obstacle& d){
 	this->publishMessage(msg);	
 }
 
+void Generator::updateLaserLeft(std_msgs::Float32 l){
+	this->laserLeft = (float) l.data;
+	this->generateFeedback();
+}
+
+void Generator::updateLaserRight(std_msgs::Float32 r){
+	this->laserRight = (float) r.data;
+	this->generateFeedback();
+}
+
 int main(int argc, char * argv[]){
 	
 	ros::init(argc, argv, "haptic_interface");
@@ -82,7 +99,9 @@ int main(int argc, char * argv[]){
 
 	Generator g(n);
 
-	ros::Subscriber obstacleListener = n.subscribe("l_s_d", 1000, &Generator::generateFeedback, &g);
+	ros::Subscriber leftListener = n.subscribe("step_detect_left", 1000, &Generator::updateLaserLeft, &g);
+	
+	ros::Subscriber rightListener = n.subscribe("step_detect_right", 1000, &Generator::updateLaserRight, &g);
 
 	ros::spin();
 

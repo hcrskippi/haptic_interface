@@ -4,6 +4,7 @@
 #include "joystick/GetXYZ.h"
 #include <complex>
 #include <math.h>
+#include <limits>
 #include "std_msgs/Float32.h"
 
 #define PI 3.14159265
@@ -11,8 +12,8 @@
 #define HAPTIC_POLAR_NODE "haptic_polar"
 #define MAX_STRENGTH 32767
 #define MAX_VAL 500000.0
-#define MAX_TOLERANCE 5.0
 
+const float MAX_TOLERANCE = 5.0;
 const float def = (3.0*PI)/2.0;
 const float delta = 15.0;
 
@@ -55,8 +56,8 @@ void Generator::publishMessage(joystick::haptic_polar& msg){
 }
 
 void Generator::generateFeedback(void){
-	float d1 = this->laserLeft;
-	float d2 = this->laserRight;
+	float d1 = this->laserLeft == 0.0 ? std::numeric_limits<float>::min() : this->laserLeft;
+	float d2 = this->laserRight == 0.0 ? std::numeric_limits<float>::min() : this->laserRight;
 	float theta = def - (std::min(d1, MAX_TOLERANCE)-std::min(d2, MAX_TOLERANCE));
 	d1 = (1.0/(d1*d1));
 	d2 = (1.0/(d2*d2));

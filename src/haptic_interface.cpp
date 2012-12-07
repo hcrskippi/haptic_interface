@@ -8,7 +8,7 @@
 #include "std_msgs/Float32.h"
 
 #define PI 3.14159265
-#define SCALE_FACTOR 2048.0
+#define SCALE_FACTOR 8192.0
 #define HAPTIC_POLAR_NODE "haptic_polar"
 #define MAX_STRENGTH 32767
 #define MAX_VAL 500000.0
@@ -58,7 +58,13 @@ void Generator::publishMessage(joystick::haptic_polar& msg){
 void Generator::generateFeedback(void){
 	float d1 = this->laserLeft == 0.0 ? std::numeric_limits<float>::min() : this->laserLeft;
 	float d2 = this->laserRight == 0.0 ? std::numeric_limits<float>::min() : this->laserRight;
-	float theta = def - (std::min(d1, MAX_TOLERANCE)-std::min(d2, MAX_TOLERANCE));
+	float t_d1 = std::min(d1,MAX_TOLERANCE);
+	float t_d2 = std::min(d2,MAX_TOLERANCE);
+	float sum = t_d1 + t_d2;
+	//float diff = (std::min(d1, MAX_TOLERANCE)-std::min(d2, MAX_TOLERANCE));
+	//diff *= PI/20.0;
+	float diff = 0.25*PI*((t_d1/sum) - (t_d2/sum));
+	float theta = def - diff;
 	d1 = (1.0/(d1*d1));
 	d2 = (1.0/(d2*d2));
 	float R = d1+d2;

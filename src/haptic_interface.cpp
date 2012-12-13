@@ -12,10 +12,11 @@
 #define HAPTIC_POLAR_NODE "haptic_polar"
 #define MAX_STRENGTH 32767
 #define MAX_VAL 500000.0
+#define SHAKE_COUNT 15
 
 const float MAX_TOLERANCE = 5.0;
 const float def = (3.0*PI)/2.0;
-const float delta = 15.0;
+const float delta = 40.0;
 
 typedef enum EffectType{
 	DEFAULT,
@@ -29,6 +30,7 @@ public:
 		pub = n.advertise<joystick::haptic_polar>(HAPTIC_POLAR_NODE, 1000);
 		effectType = DEFAULT;
 		decision = 1;
+		shakeEnabled = false;
 	}
 	
 	~Generator(){};
@@ -41,12 +43,17 @@ public:
 
 	void updateLaserRight(std_msgs::Float32 r); 
 
+	void enableShake(void);
+	
+	void disableShake(void);
+
 private:
 	ros::Publisher pub;
 	int decision;
 	EffectType effectType;
 	float laserLeft;
 	float laserRight;
+	bool shakeEnabled;
 };
 
 
@@ -82,11 +89,15 @@ void Generator::generateFeedback(void){
 		this->effectType = DEFAULT; 
 	}
 
-	/*if(this->effectType == SHAKE){
-		msg.angle = msg.angle + (*this).decision*delta;
-	}*/
-
-	this->publishMessage(msg);	
+	if((this->effectType == SHAKE) && (this->shakeEnabled == true)){
+		int temp = msg.angle;
+		for(int i = 0; i < SHAKE_COUNT; ++i){
+			msg.angle = temp + (*this).decision*delta;
+			this->publishMessage(msg);
+		}
+	}else{
+		this->publishMessage(msg);
+	}	
 }
 
 void Generator::updateLaserLeft(std_msgs::Float32 l){
@@ -99,6 +110,14 @@ void Generator::updateLaserRight(std_msgs::Float32 r){
 	this->generateFeedback();
 }
 
+void Generator::enableShake(void){
+	this->shakeEnabled = true;
+}
+
+void Generator::disableShake(void){
+	this->shakeEnabled = false;
+}
+
 int main(int argc, char * argv[]){
 	
 	ros::init(argc, argv, "haptic_interface");
@@ -106,6 +125,9 @@ int main(int argc, char * argv[]){
 	ros::NodeHandle n;
 
 	Generator g(n);
+
+//	g.enableShake();
+//	ROS_INFO("shake enabled");
 
 	ros::Subscriber leftListener = n.subscribe("step_detect_left", 1000, &Generator::updateLaserLeft, &g);
 	
